@@ -1,7 +1,12 @@
 #!/usr/local/bin/python3
+import sys
 import json
+
 from util import HTTP
 import chatserv
+from coms import xhr_polling
+
+transports = {'xhr-polling': xhr_polling}
 
 def spider(wiki):
 	response = HTTP.get('http://' + wiki + '.wikia.com/wikia.php', {'controller': 'Chat', 'format': 'json', 'client': 'Chatserv', 'version': chatserv.version}, {'Cookie': chatserv.session}).read().decode('utf-8')
@@ -20,4 +25,12 @@ def session(room, key = None, server = None, port = None):
 	result = HTTP.get('http://' + server + ':' + port + '/socket.io/1/', {'name': chatserv.user, 'key': key, 'roomId': room, 'client': 'Chatserv', 'version': chatserv.version}, {'Cookie': chatserv.session}).read().decode('utf-8')
 	if result[:4] == 'new ': pass #do error things
 	else: return result[:result.find(':')]
+
+def receive(room, message):
+	if room <= 0 or room not in chatserv.chats: raise Exception('Bad call to receive')
+	if message['event'] == 'join': data = json.loads(message['joinData'])
+	else: data = json.loads(message['data'])
+
+	if message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'] == '!quit':
+		sys.exit()
 
