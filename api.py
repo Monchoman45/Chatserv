@@ -3,23 +3,21 @@ import json
 from util import HTTP
 import chatserv
 
-def spider(wiki, callback = None):
+def spider(wiki):
 	response = HTTP.get('http://' + wiki + '.wikia.com/wikia.php', {'controller': 'Chat', 'format': 'json', 'client': 'Chatserv', 'version': chatserv.version}, {'Cookie': chatserv.session}).read().decode('utf-8')
-	if hasattr(callback, '__call__'): callback(json.loads(response))
+	return json.loads(response)
 
-def session(room, key = None, server = None, port = None, callback = None):
+def session(room, key = None, server = None, port = None):
 	if room <= 0: raise Exception('Invalid room ' + room)
 
 	if key == False: raise Exception('\'key\' is false')
 	elif key == None or hasattr(key, '__call__'):
-		def cb(data):
-			if 'exception' in data: raise Exception(data['exeption']['message'])
+		data = spider(room)
+		if 'exception' in data: raise Exception(data['exeption']['message'])
+		if data['chatkey']['key'] == False: raise Exception('\'key\' is false')
+		session(room, data['chatkey'], data['nodeHostname'], data['nodePort'], key)
 
-			if data['chatkey']['key'] == False: raise Exception('\'key\' is false')
-			session(room, data['chatkey'], data['nodeHostname'], data['nodePort'], key)
-		spider(room, cb)
-	else:
-		result = HTTP.get('http://' + server + ':' + port + '/socket.io/1/', {'name': chatserv.user, 'key': key, 'roomId': room, 'client': 'Chatserv', 'version': chatserv.version}, {'Cookie': chatserv.session}).read().decode('utf-8')
-		if result[:4] == 'new ': pass #do error things
-		elif hasattr(callback, '__call__'): callback(result[:result.find(':')])
+	result = HTTP.get('http://' + server + ':' + port + '/socket.io/1/', {'name': chatserv.user, 'key': key, 'roomId': room, 'client': 'Chatserv', 'version': chatserv.version}, {'Cookie': chatserv.session}).read().decode('utf-8')
+	if result[:4] == 'new ': pass #do error things
+	elif hasattr(callback, '__call__'): callback(result[:result.find(':')])
 
