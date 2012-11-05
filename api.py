@@ -19,5 +19,5 @@ def session(room, key = None, server = None, port = None):
 
 	result = HTTP.get('http://' + server + ':' + port + '/socket.io/1/', {'name': chatserv.user, 'key': key, 'roomId': room, 'client': 'Chatserv', 'version': chatserv.version}, {'Cookie': chatserv.session}).read().decode('utf-8')
 	if result[:4] == 'new ': pass #do error things
-	elif hasattr(callback, '__call__'): callback(result[:result.find(':')])
+	else: return result[:result.find(':')]
 
