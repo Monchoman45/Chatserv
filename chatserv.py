@@ -7,11 +7,11 @@ if __name__ == '__main__':
 	#the chatserv they import is not the same as this chatserv - it's the module, not this main script.
 	#So instead of doing work that will fall on deaf ears, we import the module chatserv and make it do the work.
 	#All working components are then modules - problem solved.
+	if len(sys.argv) < 3: raise Exception('Must specify username and password')
 	import chatserv
-	chatserv.init()
+	chatserv.init(sys.argv[1], sys.argv[2])
 	sys.exit()
 
-import multiprocessing
 import json
 
 from util import HTTP
@@ -52,20 +52,21 @@ def login(name = None, passw = None):
 def isloggedin():
 	return bool(json.loads(HTTP.get('http://community.wikia.com/api.php', {'action': 'query', 'meta': 'userinfo', 'format': 'json'}, {'Cookie': session}).read().decode('utf-8')))
 
-def init():
+def init(name, passw):
 	global user, password
-	#FIXME: find a better way of passing username/password than through argv
-	if len(sys.argv) < 3: raise Exception('Must specify username and password')
-	user = sys.argv[1]
-	password = sys.argv[2]
+	user = name
+	password = passw
 	login()
-	Chat(4777) #TODO: possibly use a database to remember rooms to join, settings, etc
+	Chat('monchbox') #TODO: possibly use a database to remember rooms to join, settings, etc
 
 	while True:
 		event = stack.get()
 		try:
 			if event.type == 'call': event.run()
 			else: raise Exception('Unrecognized event type ' + event.type)
-		#except: print('Failed to handle event', event)
+		except SystemExit:
+			print('Closing...')
+			for i in chats: chats[i].sendCommand('logout')
+			sys.exit(0)
 		finally: stack.task_done()
 

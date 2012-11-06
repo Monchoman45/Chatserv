@@ -63,5 +63,5 @@ def send(sock, message):
 	HTTP.post(
 		'http://' + sock.server + ':' + str(sock.port) + '/socket.io/1/xhr-polling/' + sock.session + '/?name=' + chatserv.user + '&key=' + sock.key + '&roomId=' + str(sock.id) + '&client=Chatserv&version=' + str(chatserv.version),
 		'5:::' + json.dumps({'name': 'message', 'args': [message]}),
-		{'Cookie': chatserv.session}
+		{'Content-Type': 'text/plain', 'Cookie': chatserv.session}
 	)
