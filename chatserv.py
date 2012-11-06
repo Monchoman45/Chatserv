@@ -11,29 +11,20 @@ if __name__ == '__main__':
 	chatserv.init()
 	sys.exit()
 
-from queue import Queue
 import multiprocessing
 import json
 
 from util import HTTP
-from chat import Chat
+from chats import chats, Chat
 #This might be confusing to python people, but it conforms with Torus.
 #Luckily, the standard io module is never used. So in this application, io is always coms/io
 from coms import io
+from stack import stack
 
 user = ''
 password = ''
 session = ''
 version = 1
-
-chats = {}
-stack = Queue()
-
-class StackEvent():
-	def __init__(self, func, args = (), kwargs = {}):
-		self.func = func
-		self.args = args
-		self.kwargs = kwargs
 
 def open(room, key = None, server = None, port = None, session = None, transport = None):
 	#FIXME: is this function actually necessary?
@@ -72,6 +63,9 @@ def init():
 
 	while True:
 		event = stack.get()
-		try: event.func(*event.args, **event.kwargs)
+		try:
+			if event.type == 'call': event.run()
+			else: raise Exception('Unrecognized event type ' + event.type)
 		#except: print('Failed to handle event', event)
 		finally: stack.task_done()
+

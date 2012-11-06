@@ -47,13 +47,16 @@ def head(url, params = {}, headers = {'Content-Type': 'application/x-www-form-ur
 
 def post(url, params = {}, headers = {'Content-Type': 'application/x-www-form-urlencoded'}):
 	if 'Content-Type' not in headers: headers['Content-Type'] = 'application/x-www-form-urlencoded'
-	body = ''
-	for i in params:
-		if not isinstance(params[i], str) and hasattr(params[i], '__iter__'):
-			for param in params[i]:
-				body += '&' + urllib.parse.quote(i)
-				if '[]' in i: body += '%5B%5D'
-				body += '=' + urllib.parse.quote(param)
-		else: body += '&' + urllib.parse.quote(i) + '=' + urllib.parse.quote(str(params[i]))
-	return _request('POST', url, body[1:], headers)
+	if isinstance(params, str): body = params
+	else: #assume dict
+		body = ''
+		for i in params:
+			if not isinstance(params[i], str) and hasattr(params[i], '__iter__'):
+				for param in params[i]:
+					body += '&' + urllib.parse.quote(i)
+					if '[]' in i: body += '%5B%5D'
+					body += '=' + urllib.parse.quote(param)
+			else: body += '&' + urllib.parse.quote(i) + '=' + urllib.parse.quote(str(params[i]))
+		body = body[1:]
+	return _request('POST', url, body, headers)
 

@@ -26,11 +26,13 @@ def session(room, key = None, server = None, port = None):
 	if result[:4] == 'new ': pass #do error things
 	else: return result[:result.find(':')]
 
-def receive(room, message):
-	if room <= 0 or room not in chatserv.chats: raise Exception('Bad call to receive')
+def receive(sock, message):
+	if sock.id not in chatserv.chats or chatserv.chats[sock.id] != sock: raise Exception('Bad call to receive')
 	if message['event'] == 'join': data = json.loads(message['joinData'])
 	else: data = json.loads(message['data'])
 
 	if message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'] == '!quit':
 		sys.exit()
+	elif message['event'] == 'chat:add' and data['attrs']['text'].lower() == 'ping':
+		sock.sendMessage('pong')
 

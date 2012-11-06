@@ -6,11 +6,13 @@ from util import HTTP
 import chatserv
 import coms.io as io
 
+chats = {}
+
 class Chat(Thread):
 	def __init__(self, room, key = None, server = None, port = None, session = None, transport = None):
+		global chats
 		if room <= 0: raise Exception('Invalid room id') #TODO: ConnectionError
-		Thread.__init__(self, name='chat-' + str(room))
-		self.daemon = True
+		Thread.__init__(self, name='chat-' + str(room), daemon=True)
 
 		self.id = room
 		self.key = key
@@ -19,14 +21,13 @@ class Chat(Thread):
 		self.session = session
 		self.transport = transport
 
-		self.connected = False
-		self.connecting = True
-		self.reconnecting = False
+		self.connected = Event()
 		self.userlist = {}
 
-		chatserv.chats[self.id] = self
+		chats[self.id] = self
 		self.start()
 	def run(self):
+		global chats
 		if self.key == None:
 			data = io.spider('community')
 			if 'exception' in data: raise Exception(data['exception']['message']) #wiki doesn't have chat, probably
@@ -43,8 +44,14 @@ class Chat(Thread):
 		if self.transport == None: self.transport = 'xhr-polling' #this will be important if websockets are ever allowed again
 		try: io.transports[self.transport].connect(self) #connect
 		finally: #dead
-			del chatserv.chats[self.id]
-	def sendMessage(message):
-		pass
-	def sendCommand(command, args):
-		pass
+			del chats[self.id]
+	def sendMessage(self, message):
+		self.connected.wait()
+		message = {'attrs': {'msgType': 'chat', 'text': message}}
+		io.transports[self.transport].send(self, json.dumps(message))
+	def sendCommand(self, command, args = {}):
+		self.connected.wait()
+		command = {'attrs': {'msgType': 'command', 'command': command}}
+		for i in args: command['attrs'][i] = args[i]
+		io.transports[self.transport].send(self, json.dumps(command))
+
