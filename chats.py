@@ -4,7 +4,7 @@ import json
 
 from util import HTTP
 import chatserv
-import coms.io as io
+from coms import io
 
 chats = {}
 
@@ -12,8 +12,8 @@ class Chat(Thread):
 	def __init__(self, room, key = None, server = None, port = None, session = None, transport = None):
 		global chats
 		if isinstance(room, int):
-			if room <= 0:
-				raise Exception('Invalid room id') #TODO: ConnectionError
+			if room <= 0: raise Exception('Invalid room id') #TODO: ConnectionError
+			else:
 				self.id = room
 				self.domain = None
 		else: #assume domain name
@@ -65,4 +65,18 @@ class Chat(Thread):
 		command = {'attrs': {'msgType': 'command', 'command': command}}
 		for i in args: command['attrs'][i] = args[i]
 		io.transports[self.transport].send(self, json.dumps(command))
+
+class PrivateChat(Chat):
+	def __init__(self, users, room, parent, key = None, server = None, port = None, session = None, transport = None):
+		self.parent = parent
+		self.domain = parent.domain #if the parent was opened via id but somehow we knew it was chat2-1, this might explode
+		self.users = users
+		Chat.__init__(self, room, key, server, port, session, transport)
+	def run(self):
+		if self.id == None:
+			self.id = json.loads(io.cajax('getPrivateRoomId', {'users': ','.join(users)}))['id']
+		Chat.run(self)
+	def sendMessage(self, message):
+		self.parent.sendCommand('openprivate', {'roomId': self.id, 'users': self.users})
+		Chat.sendMessage(self, message)
 

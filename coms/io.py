@@ -5,6 +5,7 @@ import json
 from util import HTTP
 import chatserv
 from coms import xhr_polling
+import chats
 
 transports = {'xhr-polling': xhr_polling}
 
@@ -39,12 +40,21 @@ def session(room, key = None, server = None, port = None):
 	if result[:11] == 'new Error(\'': raise Exception(result[11:-2])
 	else: return result[:result.find(':')]
 
+def cajax(method, post):
+	return HTTP.post(
+		'http://community.wikia.com/index.php?acion=ajax&rs=ChatAjax&method=' + method + '&client=Chatserv&version=' + str(chatserv.version),
+		post,
+		{'Cookie': chatserv.session}
+	).read().decode('utf-8')
+
 def receive(sock, message):
 	if sock.id not in chatserv.chats or chatserv.chats[sock.id] != sock: raise Exception('Bad call to receive')
 	if message['event'] == 'join': data = json.loads(message['joinData'])
 	else: data = json.loads(message['data'])
 
-	if message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'].lower() == '!quit':
+	if message['event'] == 'openPrivateRoom' and data['attrs']['roomId'] not in chatserv.chats:
+		chats.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
+	elif message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'].lower() == '!quit':
 		sys.exit()
 	elif message['event'] == 'chat:add' and data['attrs']['text'].lower() == 'ping':
 		sock.sendMessage('pong')
