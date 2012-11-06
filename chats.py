@@ -1,10 +1,12 @@
 #!/usr/local/bin/python3
 from threading import Thread, Event
 import json
+import sys
 
 from util import HTTP
 import chatserv
 from coms import io
+from stack import StackCallable
 
 chats = {}
 
@@ -27,6 +29,8 @@ class Chat(Thread):
 		self.transport = transport
 
 		self.connected = Event()
+		self.__killed = Event()
+
 		self.userlist = {}
 
 		if self.id != None: chats[self.id] = self
@@ -56,15 +60,22 @@ class Chat(Thread):
 		try: io.transports[self.transport].connect(self) #connect
 		finally: #dead
 			del chats[self.id]
+			if len(chats) == 0: chatserv.stack.put(StackCallable(sys.exit))
+	def kill(self):
+		self.__killed.set()
 	def sendMessage(self, message):
+		if self.__killed.isSet(): return False
 		self.connected.wait()
 		message = {'attrs': {'msgType': 'chat', 'text': message}}
 		io.transports[self.transport].send(self, json.dumps(message))
+		return True
 	def sendCommand(self, command, args = {}):
+		if self.__killed.isSet(): return False
 		self.connected.wait()
 		command = {'attrs': {'msgType': 'command', 'command': command}}
 		for i in args: command['attrs'][i] = args[i]
 		io.transports[self.transport].send(self, json.dumps(command))
+		return True
 
 class PrivateChat(Chat):
 	def __init__(self, users, room, parent, key = None, server = None, port = None, session = None, transport = None):

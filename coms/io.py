@@ -55,7 +55,7 @@ def receive(sock, message):
 	if message['event'] == 'openPrivateRoom' and data['attrs']['roomId'] not in chatserv.chats:
 		chats.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
 	elif message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'].lower() == '!quit':
-		sys.exit()
+		chatserv.logout()
 	elif message['event'] == 'chat:add' and data['attrs']['text'].lower() == 'ping':
 		sock.sendMessage('pong')
 

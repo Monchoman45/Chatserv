@@ -30,6 +30,13 @@ def open(room, key = None, server = None, port = None, session = None, transport
 	#FIXME: is this function actually necessary?
 	return Chat(room, key, server, port, session, transport)
 
+def logout():
+	print('Closing...')
+	for i in chats:
+		chats[i].sendCommand('logout')
+		chats[i].kill()
+	sys.exit()
+
 def login(name = None, passw = None):
 	global session, user, password
 	if name == None: name = user
@@ -64,9 +71,8 @@ def init(name, passw):
 		try:
 			if event.type == 'call': event.run()
 			else: raise Exception('Unrecognized event type ' + event.type)
-		except SystemExit:
-			print('Closing...')
-			for i in chats: chats[i].sendCommand('logout')
-			sys.exit(0)
+		except:
+			logout()	
+			sys.exit(1)
 		finally: stack.task_done()
 

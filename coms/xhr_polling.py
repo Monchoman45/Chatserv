@@ -19,6 +19,7 @@ def connect(sock):
 			},
 			{'Cookie': chatserv.session}
 		)
+		if sock._Chat__killed.isSet(): break
 		if response.status == 200:
 			print('---------------------------------------')
 			data = response.read().decode('utf-8')
