@@ -5,8 +5,6 @@ import sys
 
 from util import HTTP
 import chatserv
-from coms import io
-from stack import StackCallable
 
 chats = {}
 
@@ -38,8 +36,8 @@ class Chat(Thread):
 	def run(self):
 		global chats
 		if self.id == None or self.key == None:
-			if self.domain: data = io.spider(self.domain)
-			else: data = io.spider('community')
+			if self.domain: data = chatserv.io.spider(self.domain)
+			else: data = chatserv.io.spider('community')
 			if 'exception' in data: raise Exception(data['exception']['message'])
 			elif not isinstance(data['chatkey'], str): raise Exception('Chatkey is false')
 
@@ -55,26 +53,26 @@ class Chat(Thread):
 		#Most domains are on chat2-2 though, so this should at least accidentally not break most wikis.
 		if self.server == None: self.server = 'chat2-2.wikia.com'
 		if self.port == None: self.port = 80 #it's not worth wasting time making an HTTP request when it's just going to be 80
-		if self.session == None: self.session = io.session(self.id, self.key, self.server, self.port)
+		if self.session == None: self.session = chatserv.io.session(self.id, self.key, self.server, self.port)
 		if self.transport == None: self.transport = 'xhr-polling' #this will be important if websockets are ever allowed again
-		try: io.transports[self.transport].connect(self) #connect
+		try: chatserv.io.transports[self.transport].connect(self) #connect
 		finally: #dead
 			del chats[self.id]
-			if len(chats) == 0: chatserv.stack.put(StackCallable(sys.exit))
+			if len(chats) == 0: chatserv.stack.put(chatserv.StackCallable(sys.exit))
 	def kill(self):
 		self.__killed.set()
 	def sendMessage(self, message):
 		if self.__killed.isSet(): return False
 		self.connected.wait()
 		message = {'attrs': {'msgType': 'chat', 'text': message}}
-		io.transports[self.transport].send(self, json.dumps(message))
+		chatserv.io.transports[self.transport].send(self, json.dumps(message))
 		return True
 	def sendCommand(self, command, args = {}):
 		if self.__killed.isSet(): return False
 		self.connected.wait()
 		command = {'attrs': {'msgType': 'command', 'command': command}}
 		for i in args: command['attrs'][i] = args[i]
-		io.transports[self.transport].send(self, json.dumps(command))
+		chatserv.io.transports[self.transport].send(self, json.dumps(command))
 		return True
 
 class PrivateChat(Chat):

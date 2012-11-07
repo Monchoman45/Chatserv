@@ -15,11 +15,11 @@ if __name__ == '__main__':
 import json
 
 from util import HTTP
-from chats import chats, Chat
+from chats import *
 #This might be confusing to python people, but it conforms with Torus.
 #Luckily, the standard io module is never used. So in this application, io is always coms/io
 from coms import io
-from stack import stack
+from stack import *
 
 user = ''
 password = ''
@@ -73,6 +73,6 @@ def init(name, passw):
 			else: raise Exception('Unrecognized event type ' + event.type)
 		except:
 			logout()	
-			sys.exit(1)
+			raise
 		finally: stack.task_done()
 

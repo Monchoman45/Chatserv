@@ -5,7 +5,6 @@ import json
 from util import HTTP
 import chatserv
 from coms import xhr_polling
-import chats
 
 transports = {'xhr-polling': xhr_polling}
 
@@ -53,7 +52,7 @@ def receive(sock, message):
 	else: data = json.loads(message['data'])
 
 	if message['event'] == 'openPrivateRoom' and data['attrs']['roomId'] not in chatserv.chats:
-		chats.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
+		chatserv.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
 	elif message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'].lower() == '!quit':
 		chatserv.logout()
 	elif message['event'] == 'chat:add' and data['attrs']['text'].lower() == 'ping':

@@ -3,8 +3,6 @@ import json
 
 from util import HTTP
 import chatserv
-import coms.io
-from stack import stack, StackCallable
 
 def connect(sock):
 	while True:
@@ -17,7 +15,8 @@ def connect(sock):
 				'client': 'Chatserv',
 				'version': chatserv.version
 			},
-			{'Cookie': chatserv.session}
+			{'Cookie': chatserv.session},
+			timeout=30
 		)
 		if sock._Chat__killed.isSet(): break
 		if response.status == 200:
@@ -40,10 +39,10 @@ def connect(sock):
 				i += 2
 
 				#no switch, so these are in frequency order
-				if message[0] == '8': #noop - just in case
+				if message[0] == '4': #json
+					chatserv.stack.put(chatserv.StackCallable(chatserv.io.receive, (sock, json.loads(message[4:])), {}))
+				elif message[0] == '8': #noop - just in case
 					continue
-				elif message[0] == '4': #json
-					stack.put(StackCallable(coms.io.receive, (sock, json.loads(message[4:])), {}))
 				elif message[0] == '0': #disconnect
 					sock.connected.clear()
 					raise Exception() #TODO: something nicer?
@@ -64,5 +63,6 @@ def send(sock, message):
 	HTTP.post(
 		'http://' + sock.server + ':' + str(sock.port) + '/socket.io/1/xhr-polling/' + sock.session + '/?name=' + chatserv.user + '&key=' + sock.key + '&roomId=' + str(sock.id) + '&client=Chatserv&version=' + str(chatserv.version),
 		'5:::' + json.dumps({'name': 'message', 'args': [message]}),
-		{'Content-Type': 'text/plain', 'Cookie': chatserv.session}
+		{'Content-Type': 'text/plain', 'Cookie': chatserv.session},
+		timeout=10
 	)
