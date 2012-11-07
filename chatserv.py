@@ -15,11 +15,11 @@ if __name__ == '__main__':
 import json
 
 from util import HTTP
-from chats import *
 #This might be confusing to python people, but it conforms with Torus.
-#Luckily, the standard io module is never used. So in this application, io is always coms/io
-from coms import io
+#Luckily, the standard io module is never used. So in this application, io is always inout.py
+import inout as io
 from stack import *
+from chats import *
 
 user = ''
 password = ''

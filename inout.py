@@ -4,7 +4,7 @@ import json
 
 from util import HTTP
 import chatserv
-from coms import xhr_polling
+from transports import xhr_polling
 
 transports = {'xhr-polling': xhr_polling}
 
