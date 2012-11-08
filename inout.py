@@ -51,10 +51,12 @@ def receive(sock, message):
 	if message['event'] == 'join': data = json.loads(message['joinData'])
 	else: data = json.loads(message['data'])
 
-	if message['event'] == 'openPrivateRoom' and data['attrs']['roomId'] not in chatserv.chats:
+	if message['event'] == 'chat:add':
+		#TODO: log
+		if data['attrs']['text'][0] == '!':
+			command = chatserv.commands.select(data['attrs']['text'][1:])
+			if command == None: sock.sendMessage('No command ' + data['attrs']['text'])
+			else: command()
+	elif message['event'] == 'openPrivateRoom' and data['attrs']['roomId'] not in chatserv.chats:
 		chatserv.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
-	elif message['event'] == 'chat:add' and data['attrs']['name'] == 'Monchoman45' and data['attrs']['text'].lower() == '!quit':
-		chatserv.logout()
-	elif message['event'] == 'chat:add' and data['attrs']['text'].lower() == 'ping':
-		sock.sendMessage('pong')
 

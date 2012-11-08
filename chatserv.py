@@ -20,6 +20,7 @@ from util import HTTP
 import inout as io
 from stack import *
 from chats import *
+import commands
 
 user = ''
 password = ''
@@ -35,7 +36,7 @@ def logout():
 	for i in chats:
 		chats[i].sendCommand('logout')
 		chats[i].kill()
-	sys.exit()
+	#sys.exit()
 
 def login(name = None, passw = None):
 	global session, user, password
@@ -50,7 +51,7 @@ def login(name = None, passw = None):
 	try: HTTP.post('http://community.wikia.com/api.php', {'action': 'login', 'lgname': name, 'lgpassword': passw, 'lgtoken': result['login']['token']}, {'Cookie': newsession})
 	except:
 		print(result)
-		sys.exit()
+		raise
 	user = name #this should minimize race conditions if we ever have to login in again while connected
 	password = passw
 	session = newsession
@@ -72,7 +73,8 @@ def init(name, passw):
 			if event.type == 'call': event.run()
 			else: raise Exception('Unrecognized event type ' + event.type)
 		except:
-			logout()	
+			logout()
 			raise
+			sys.exit()
 		finally: stack.task_done()
 
