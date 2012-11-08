@@ -4,7 +4,7 @@ if __name__ == '__main__':
 	#We are the invoked module - but we can't do anything.
 	#We aren't actually a module, we're a script. All our variables are accessible only to us.
 	#Most other modules will import chatserv, but will end up with the problem that
-	#the chatserv they import is not the same as this chatserv - it's the module, not this main script.
+	#the chatserv they import is not the same as this chatserv - they import the module, not this main script.
 	#So instead of doing work that will fall on deaf ears, we import the module chatserv and make it do the work.
 	#All working components are then modules - problem solved.
 	if len(sys.argv) < 3: raise Exception('Must specify username and password')

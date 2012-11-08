@@ -4,8 +4,9 @@ import json
 
 from util import HTTP
 import chatserv
-from transports import xhr_polling
 
+#transports = {}
+from transports import *
 transports = {'xhr-polling': xhr_polling}
 
 def spider(wiki):
@@ -51,12 +52,66 @@ def receive(sock, message):
 	if message['event'] == 'join': data = json.loads(message['joinData'])
 	else: data = json.loads(message['data'])
 
-	if message['event'] == 'chat:add':
-		#TODO: log
-		if data['attrs']['text'][0] == '!':
-			command = chatserv.commands.select(data['attrs']['text'][1:])
-			if command == None: sock.sendMessage('No command ' + data['attrs']['text'])
-			else: command()
-	elif message['event'] == 'openPrivateRoom' and data['attrs']['roomId'] not in chatserv.chats:
-		chatserv.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
+	__events[message['event']](sock, data)
+	#TODO: run custom event handlers bound with a function decorator or something
 
+def __initial(sock, data):
+	for model in data['collections']['users']['models']: __updateUser(sock, model)
+
+def __chat_add(sock, data):
+	#TODO: log
+	if data['attrs']['text'][0] == '!':
+		command = chatserv.commands.select(data['attrs']['text'][1:])
+		if command == None: sock.sendMessage('No command ' + data['attrs']['text'])
+		else: command()
+
+def __join(sock, data):
+	__updateUser(sock, data)
+
+def __updateUser(sock, data):
+	props = {
+		'mod': data['attrs']['isModerator'],
+		'staff': data['attrs']['isStaff'],
+		'givemod': data['attrs']['isCanGiveChatMode'],
+		'statusState': data['attrs']['statusState'],
+		'statusMessage': data['attrs']['statusMessage'],
+		'edits': data['attrs']['editCount']
+	}
+	if data['attrs']['since']: props['since'] = data['attrs']['since']['0']
+	else: props['since'] = None
+	#TODO: store somewhere
+
+def __part(sock, data):
+	pass #delete user from somewhere
+
+def __logout(sock, data):
+	__part(sock, data)
+
+def __ban(sock, data):
+	__kick(sock, data)
+
+def __kick(sock, data):
+	if data['attrs']['kickedUserName'] == chatserv.name: sock.kill()
+
+def __openPrivateRoom(sock, data):
+	if data['attrs']['roomId'] not in chatserv.chats: chatserv.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
+
+def __forceReconnect(sock, data):
+	pass
+
+def __disableReconnect(sock, data):
+	pass
+
+__events = {
+	'initial': __initial,
+	'chat:add': __chat_add,
+	'join': __join,
+	'updateUser': __updateUser,
+	'part': __part,
+	'logout': __logout,
+	'ban': __ban,
+	'kick': __kick,
+	'openPrivateRoom': __openPrivateRoom,
+	'forceReconnect': __forceReconnect,
+	'disableReconnect': __disableReconnect
+}

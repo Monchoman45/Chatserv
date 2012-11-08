@@ -1,8 +1,10 @@
 #!/usr/local/bin/python3
-import json
+import sys, json
 
 from util import HTTP
 import chatserv
+
+#chatserv.io.transports['xhr-polling']: sys.modules[__name__]]
 
 def connect(sock):
 	while True:
@@ -40,23 +42,31 @@ def connect(sock):
 
 				#no switch, so these are in frequency order
 				if message[0] == '4': #json
-					chatserv.stack.put(chatserv.StackContext(chatserv.io.receive, sock, json.loads(message[4:])))
+					event = json.loads(message[4:])
+					chatserv.stack.put(chatserv.StackContext(chatserv.io.receive, sock, event))
+					if event['event'] == 'disableReconnect':
+						sock.connected.clear()
+						return
+					elif event['event'] == 'forceReconnect': pass #re auth and such
 				elif message[0] == '8': #noop - just in case
 					continue
 				elif message[0] == '0': #disconnect
 					sock.connected.clear()
-					raise Exception() #TODO: something nicer?
+					return
 				elif message[0] == '1': #connect
 					if sock.connected.is_set(): continue #why it sometimes spams 1:: is beyond me
 					sock.connected.set()
 					sock.sendCommand('initquery')
 				elif message[0] == '7': #error
+					sock.connected.clear()
 					raise Exception(message[4:])
 				else:
+					sock.connected.clear()
 					raise Exception('Received unimplemented data type ' + message[0])
 
 		elif response.status == 404: continue #this is what Torus does, I still don't know if it's good or bad
 		else: raise Exception('Bad HTTP status ' + response.status)
+	sock.connected.clear()
 
 def send(sock, message):
 	#TODO: the response is worthless

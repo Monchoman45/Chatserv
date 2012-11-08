@@ -59,6 +59,7 @@ class Chat(Thread):
 		finally: #dead
 			del chats[self.id]
 			if len(chats) == 0: chatserv.stack.put(chatserv.StackContext(sys.exit))
+			raise
 	def kill(self):
 		self.__killed.set()
 	def sendMessage(self, message):
