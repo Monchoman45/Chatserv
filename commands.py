@@ -28,18 +28,10 @@ def select(command, prop = None):
 		else: return None
 	if prop == '*': return target
 	elif prop != None: return getattr(target, prop)
-	else: return Context(target, *command[i + 1:])
+	else: return chatserv.Context(target, *command[i + 1:])
 
-class Context():
-	def __init__(self, callable, *args, **kwargs):
-		self.callable = callable
-		self.args = args
-		self.kwargs = kwargs
-	def __call__(self):
-		self.callable(*self.args, **self.kwargs)
-
-class Command():
-	def __init__(self, callable, kwargs={}):
+class Command(chatserv.Context):
+	def __init__(self, callable, **kwargs):
 		self.callable = callable
 		self.kwargs = kwargs
 	def __call__(self, *args):

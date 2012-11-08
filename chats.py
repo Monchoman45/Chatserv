@@ -58,7 +58,7 @@ class Chat(Thread):
 		try: chatserv.io.transports[self.transport].connect(self) #connect
 		finally: #dead
 			del chats[self.id]
-			if len(chats) == 0: chatserv.stack.put(chatserv.StackCallable(sys.exit))
+			if len(chats) == 0: chatserv.stack.put(chatserv.StackContext(sys.exit))
 	def kill(self):
 		self.__killed.set()
 	def sendMessage(self, message):
@@ -83,7 +83,7 @@ class PrivateChat(Chat):
 		Chat.__init__(self, room, key, server, port, session, transport)
 	def run(self):
 		if self.id == None:
-			self.id = json.loads(io.cajax('getPrivateRoomId', {'users': ','.join(users)}))['id']
+			self.id = json.loads(chatserv.io.cajax('getPrivateRoomId', {'users': ','.join(self.users)}))['id']
 		Chat.run(self)
 	def sendMessage(self, message):
 		self.parent.sendCommand('openprivate', {'roomId': self.id, 'users': self.users})

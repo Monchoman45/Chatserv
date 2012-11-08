@@ -40,7 +40,7 @@ def connect(sock):
 
 				#no switch, so these are in frequency order
 				if message[0] == '4': #json
-					chatserv.stack.put(chatserv.StackCallable(chatserv.io.receive, (sock, json.loads(message[4:])), {}))
+					chatserv.stack.put(chatserv.StackContext(chatserv.io.receive, sock, json.loads(message[4:])))
 				elif message[0] == '8': #noop - just in case
 					continue
 				elif message[0] == '0': #disconnect

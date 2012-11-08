@@ -33,7 +33,7 @@ def open(room, key = None, server = None, port = None, session = None, transport
 
 def logout():
 	print('Closing...')
-	for i in chats:
+	for i in dict(chats):
 		chats[i].sendCommand('logout')
 		chats[i].kill()
 	#sys.exit()
@@ -70,7 +70,7 @@ def init(name, passw):
 	while True:
 		event = stack.get()
 		try:
-			if event.type == 'call': event.run()
+			if event.type == 'context': event()
 			else: raise Exception('Unrecognized event type ' + event.type)
 		except:
 			logout()

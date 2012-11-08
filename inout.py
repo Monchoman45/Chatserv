@@ -47,7 +47,7 @@ def cajax(method, post):
 	).read().decode('utf-8')
 
 def receive(sock, message):
-	if sock.id not in chatserv.chats or chatserv.chats[sock.id] != sock: raise Exception('Bad call to receive')
+	if sock.id not in chatserv.chats or chatserv.chats[sock.id] != sock: return #probably a race condition
 	if message['event'] == 'join': data = json.loads(message['joinData'])
 	else: data = json.loads(message['data'])
 
