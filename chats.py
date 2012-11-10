@@ -59,6 +59,7 @@ class Chat(Thread):
 		finally: #dead
 			del chats[self.id]
 			if len(chats) == 0: chatserv.stack.put(chatserv.StackContext(sys.exit))
+			else: chatserv.stack.put(chatserv.StackContext(chatserv.users.temp.remove_room, self.id))
 			raise
 	def kill(self):
 		self.__killed.set()

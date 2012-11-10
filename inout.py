@@ -72,20 +72,20 @@ def __updateUser(sock, data):
 	props = {
 		'mod': data['attrs']['isModerator'],
 		'staff': data['attrs']['isStaff'],
-		'givemod': data['attrs']['isCanGiveChatMode'],
+		'admin': data['attrs']['isCanGiveChatMode'],
 		'statusState': data['attrs']['statusState'],
 		'statusMessage': data['attrs']['statusMessage'],
 		'edits': data['attrs']['editCount']
 	}
 	if data['attrs']['since']: props['since'] = data['attrs']['since']['0']
 	else: props['since'] = None
-	#TODO: store somewhere
+	chatserv.users.temp.update_user(sock.id, data['attrs']['name'], props)
 
 def __part(sock, data):
-	pass #delete user from somewhere
+	chatserv.users.temp.remove_user(sock.id, data['attrs']['name'])
 
 def __logout(sock, data):
-	__part(sock, data)
+	chatserv.users.temp.remove_user(sock.id, data['attrs']['leavingUserName'])
 
 def __ban(sock, data):
 	__kick(sock, data)

@@ -20,6 +20,7 @@ from util import HTTP
 import inout as io
 from stack import *
 from chats import *
+import users.temp, users.persist
 import commands
 
 user = ''
