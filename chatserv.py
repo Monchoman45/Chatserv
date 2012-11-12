@@ -16,7 +16,7 @@ import json
 
 from util import HTTP
 #This might be confusing to python people, but it conforms with Torus.
-#Luckily, the standard io module is never used. So in this application, io is always inout.py
+#This should only ever be referred to as chatserv.io, never directly imported by another module.
 import inout as io
 from stack import *
 from chats import *
@@ -52,7 +52,7 @@ def login(name = None, passw = None):
 	except:
 		print(result)
 		raise
-	user = name #this should minimize race conditions if we ever have to login in again while connected
+	user = name #this should minimize race conditions if we ever have to log in again while connected
 	password = passw
 	session = newsession
 	print('Session:', session)

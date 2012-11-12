@@ -63,7 +63,7 @@ class CommandContext(chatserv.Context):
 
 def quit(context):
 	chatserv.logout()
-def info_user(context, *user):
+def find(context, *user):
 	user = ' '.join(user)
 	if user in chatserv.users.temp.glob:
 		rooms = chatserv.users.temp.glob[user].keys()
@@ -76,7 +76,7 @@ def info_user(context, *user):
 		elif length > 0: return '[[User:' + user + '|]] is currently in ' + ', '.join(output[:-1]) + ', and ' + output[-1] + '.'
 		else: return '[[User:' + user + '|]] isn\'t online.'
 	else: return 'I have no information on [[User:' + user + '|]].'
-def info_room(context, domain):
+def users(context, domain):
 	if domain in chatserv.chats:
 		room = chatserv.chats[domain].id
 		if room in chatserv.users.temp.local:
@@ -93,10 +93,8 @@ def info_room(context, domain):
 	else: return 'I have no information on [[w:c:' + domain + '|' + domain + ']].'
 
 commands = {
-	'info': {
-		'user': Command(info_user),
-		'room': Command(info_room)
-	},
+	'find': Command(find),
+	'users': Command(users),
 	'logout': 'quit',
 	'quit': Command(quit)
 }
