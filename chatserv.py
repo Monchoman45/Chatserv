@@ -37,7 +37,6 @@ def logout():
 	for i in dict(chats):
 		chats[i].sendCommand('logout')
 		chats[i].kill()
-	#sys.exit()
 
 def login(name = None, passw = None):
 	global session, user, password
@@ -73,7 +72,7 @@ def init(name, passw):
 		try:
 			if event.type == 'context': event()
 			else: raise Exception('Unrecognized event type ' + event.type)
-		except:
+		except Exception:
 			logout()
 			raise
 			sys.exit()

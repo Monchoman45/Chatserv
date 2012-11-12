@@ -32,6 +32,7 @@ class Chat(Thread):
 		self.userlist = {}
 
 		if self.id != None: chats[self.id] = self
+		elif self.domain != None: chats[self.domain] = self
 		self.start()
 	def run(self):
 		global chats
@@ -58,9 +59,9 @@ class Chat(Thread):
 		try: chatserv.io.transports[self.transport].connect(self) #connect
 		finally: #dead
 			del chats[self.id]
+			if self.domain != None: del chats[self.domain]
 			if len(chats) == 0: chatserv.stack.put(chatserv.StackContext(sys.exit))
 			else: chatserv.stack.put(chatserv.StackContext(chatserv.users.temp.remove_room, self.id))
-			raise
 	def kill(self):
 		self.__killed.set()
 	def sendMessage(self, message):

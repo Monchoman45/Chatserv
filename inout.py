@@ -62,8 +62,18 @@ def __chat_add(sock, data):
 	#TODO: log
 	if data['attrs']['text'][0] == '!':
 		command = chatserv.commands.select(data['attrs']['text'][1:])
-		if command == None: sock.sendMessage('No command ' + data['attrs']['text'])
-		else: command()
+		if command == None: sock.sendMessage(data['attrs']['name'] + ': No command ' + data['attrs']['text'])
+		else:
+			try:
+				reply = command({
+					'user': data['attrs']['name'], #user who called command
+					'room': sock.id, #room command was called in
+					'access': {}, #the calling user's access rights
+					'match': 'op', #the matched access right #FIXME: everyone should not be an op
+					'scope': 'global' #the scope of the matched access right
+				})
+				if isinstance(reply, str): sock.sendMessage(data['attrs']['name'] + ': ' + reply)
+			except: sock.sendMessage(data['attrs']['name'] + ': Error while executing ' + data['attrs']['text'])
 
 def __join(sock, data):
 	__updateUser(sock, data)

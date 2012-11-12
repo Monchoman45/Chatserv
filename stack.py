@@ -9,7 +9,7 @@ class Context():
 		self.args = args
 		self.kwargs = kwargs
 	def __call__(self):
-		self.callable(*self.args, **self.kwargs)
+		return self.callable(*self.args, **self.kwargs)
 
 class StackEvent():
 	def __init__(self, type):
