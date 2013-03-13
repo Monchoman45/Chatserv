@@ -19,7 +19,9 @@ class Chat(Thread):
 		else: #assume domain name
 			self.id = None
 			self.domain = room
-		Thread.__init__(self, name='chat-' + str(room), daemon=True)
+		Thread.__init__(self, name='chat-' + str(room))
+		self.daemon = True
+
 		self.key = key
 		self.server = server
 		self.port = port
@@ -61,7 +63,7 @@ class Chat(Thread):
 			del chats[self.id]
 			if self.domain != None: del chats[self.domain]
 			if len(chats) == 0: chatserv.stack.put(chatserv.StackContext(sys.exit))
-			else: chatserv.stack.put(chatserv.StackContext(chatserv.users.temp.remove_room, self.id))
+			else: chatserv.stack.put(chatserv.StackContext(chatserv.data.remove_room, self.id))
 	def kill(self):
 		self.__killed.set()
 	def sendMessage(self, message):

@@ -70,7 +70,7 @@ def __chat_add(sock, data):
 					'room': sock.id, #room command was called in
 					'access': {}, #the calling user's access rights
 					'match': 'op', #the matched access right #FIXME: everyone should not be an op
-					'scope': 'global' #the scope of the matched access right
+					'scope': 'global' #the scope of the matched access right #FIXME: especially not a global op
 				})
 				if isinstance(reply, str): sock.sendMessage(data['attrs']['name'] + ': ' + reply)
 			except: sock.sendMessage(data['attrs']['name'] + ': Error while executing ' + data['attrs']['text'])
@@ -89,13 +89,13 @@ def __updateUser(sock, data):
 	}
 	if data['attrs']['since']: props['since'] = data['attrs']['since']['0']
 	else: props['since'] = None
-	chatserv.users.temp.update_user(sock.id, data['attrs']['name'], props)
+	chatserv.data.update_user(sock.id, data['attrs']['name'], props)
 
 def __part(sock, data):
-	chatserv.users.temp.remove_user(sock.id, data['attrs']['name'])
+	chatserv.data.remove_user(sock.id, data['attrs']['name'])
 
 def __logout(sock, data):
-	chatserv.users.temp.remove_user(sock.id, data['attrs']['leavingUserName'])
+	chatserv.data.remove_user(sock.id, data['attrs']['leavingUserName'])
 
 def __ban(sock, data):
 	__kick(sock, data)
