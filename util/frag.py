@@ -235,6 +235,7 @@ class FragmentIndex(io.FileIO):
 		if self.chunksize > 0 and self.ilen > self.chunksize: buff = self.read(self.chunksize)
 		else: buff = self.read(self.ilen)
 		ipos = 0
+		dpos = self.ilen + 4
 		entries = []
 		index = 0
 		while ipos < self.ilen:
@@ -247,6 +248,7 @@ class FragmentIndex(io.FileIO):
 			name = buff[1:nlen + 1]
 			dlen = struct.unpack('<I', buff[nlen + 1:nlen + 5])[0]
 			entries.append(Frag(ipos, index, name, dpos, dlen, None))
+			dpos += dlen
 			ipos += nlen + 5
 			buff = buff[nlen + 5:]
 			index += 1
@@ -293,6 +295,7 @@ class FragmentIndex(io.FileIO):
 		else: buff = self.read(self.ilen)
 		ipos = 0
 		dpos = self.ilen + 4
+		index = 0
 		while ipos < self.ilen:
 			blen = len(buff)
 			if blen < 260 and blen + ipos < self.ilen:
@@ -306,6 +309,7 @@ class FragmentIndex(io.FileIO):
 			ipos += nlen + 5
 			dpos += dlen
 			buff = buff[nlen + 5:]
+			index += 1
 		return False
 
 	#Get the data of the first fragment with the name `name`
@@ -331,7 +335,7 @@ class FragmentIndex(io.FileIO):
 		self.ilen += nlen + 5
 		self.seek(0)
 		self.write(struct.pack('<I', self.ilen))
-		return Frag(self.ilen, None, name, end + nlen + 5, dlen, frag)
+		return Frag(self.ilen, None, name, os.path.getsize(self.name) + nlen + 5, dlen, frag)
 
 	#Add a fragment to the beginning of the file
 	def prepend(self, name, frag):
@@ -351,7 +355,7 @@ class FragmentIndex(io.FileIO):
 	#Replace the data of the first fragment with name `find`
 	def replace(self, find, frag):
 		if isinstance(find, str): find = find.encode('utf-8')
-		if isinstance(find, str): frag = frag.encode('utf-8')
+		if isinstance(frag, str): frag = frag.encode('utf-8')
 
 		pos = self.pos(find)
 		if pos == False: return False
@@ -473,3 +477,13 @@ def remove(file, name):
 def trunc(file):
 	with FragmentIndex(file) as f: ret = f.trunc()
 	return ret
+
+if __name__ == '__main__':
+	''''file = FragmentIndex('database/commands.frag')
+	for frag in file.dump():
+		if frag.data != b'{"global":{},"default":{}}': file.replace(frag.name, b'{"global":{},"default":{}}')'''
+	import sys
+	file = FragmentIndex(sys.argv[1])
+	args = []
+	for i in range(len(sys.argv[3:])): args.append(os.fsencode(sys.argv[i + 3]))
+	print(getattr(file, sys.argv[2])(*args))

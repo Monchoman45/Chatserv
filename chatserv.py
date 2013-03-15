@@ -66,6 +66,7 @@ def init(name, passw):
 	user = name
 	password = passw
 	login()
+	storage.init()
 	Chat('monchbox') #TODO: possibly use a database to remember rooms to join, settings, etc
 
 	while True:
@@ -76,6 +77,6 @@ def init(name, passw):
 		except Exception:
 			logout()
 			raise
-			sys.exit()
+			break
 		finally: stack.task_done()
 

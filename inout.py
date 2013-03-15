@@ -5,7 +5,6 @@ import json
 from util import HTTP
 import chatserv
 
-#transports = {}
 from transports import *
 transports = {'xhr-polling': xhr_polling}
 
@@ -59,21 +58,36 @@ def __initial(sock, data):
 	for model in data['collections']['users']['models']: __updateUser(sock, model)
 
 def __chat_add(sock, data):
+	text = data['attrs']['text']
+	user = data['attrs']['name']
+	room = sock.id
 	#TODO: log
-	if data['attrs']['text'][0] == '!':
-		command = chatserv.commands.select(data['attrs']['text'][1:])
-		if command == None: sock.sendMessage(data['attrs']['name'] + ': No command ' + data['attrs']['text'])
+	while len(text) > 0 and text[0] == '!':
+		line = text.find('\n')
+		if line != -1:
+			comtext = text[1:line]
+			text = text[line + 1:]
 		else:
-			try:
-				reply = command({
-					'user': data['attrs']['name'], #user who called command
-					'room': sock.id, #room command was called in
-					'access': {}, #the calling user's access rights
-					'match': 'op', #the matched access right #FIXME: everyone should not be an op
-					'scope': 'global' #the scope of the matched access right #FIXME: especially not a global op
-				})
-				if isinstance(reply, str): sock.sendMessage(data['attrs']['name'] + ': ' + reply)
-			except: sock.sendMessage(data['attrs']['name'] + ': Error while executing ' + data['attrs']['text'])
+			comtext = text[1:]
+			text = ''
+
+		command = chatserv.commands.select(comtext)
+		if command == None: sock.sendMessage(user + ': No command ' + comtext + '.')
+		elif isinstance(command, dict):
+			message = user + ': Subcommands in ' + comtext + ': '
+			for i in command: message += i + ', '
+			sock.sendMessage(message[:-2])
+		else:
+			check = chatserv.commands.check(user, room, command.path)
+			if check == False: sock.sendMessage(user + ': You do not have permission to execute ' + comtext + '.')
+			elif check == None: sock.sendMessage(user + ': ' + comtext + ' is misconfigured and cannot be run.')
+			else:
+				#try:
+					if user in chatserv.storage.users: access = chatserv.storage.users[user]['access']
+					else: access = {}
+					reply = command(chatserv.commands.CallContext(user, room, access, check.scope, check.match))
+					if isinstance(reply, str): sock.sendMessage(user + ': ' + reply)
+				#except: sock.sendMessage(user + ': Error while executing ' + comtext)
 
 def __join(sock, data):
 	__updateUser(sock, data)
@@ -101,7 +115,7 @@ def __ban(sock, data):
 	__kick(sock, data)
 
 def __kick(sock, data):
-	if data['attrs']['kickedUserName'] == chatserv.name: sock.kill()
+	if data['attrs']['kickedUserName'] == chatserv.user: sock.kill()
 
 def __openPrivateRoom(sock, data):
 	if data['attrs']['roomId'] not in chatserv.chats: chatserv.PrivateChat(data['attrs']['users'], data['attrs']['roomId'], sock)
